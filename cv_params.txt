@@ -1,0 +1,18 @@
+# Parameter file for CalVIC
+
+# Locations of software packages ----------------------------
+vic_dir	/Volumes/
+rout_dir	/Volumes/
+
+# Input files -----------------------------------------------
+global_param_file	/Volumes/
+init_soil_pars	/Volumes/
+init_rout_pars /Volumes/
+discharge_obs	/Volumes/
+glacier_fract_map	/Volumes/
+
+# Control parameters ----------------------------------------
+vic_out_dir	/Volumes/
+glacier_out_dir	/Volumes/
+rout_in_dir	/Volumes/
+rout_out_dir	/Volumes/

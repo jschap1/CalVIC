@@ -1,0 +1,41 @@
+# This is a list of requirements to run the VIC calibration Matlab script.
+# 
+# 11/15/2019
+%
+% CalVIC project
+
+Matlab scripts:
+run_sceua
+
+Matlab functions:
+vic_wrapper_sceua
+add_glacier_contribution
+sce_matlab/*.m (from the File Exchange)
+myNSE
+myRMSE
+read_global_param_file
+write_global_param_file
+
+jsplot (optional, for plotting)
+geotiffread2 (optional, for plotting)
+georefobj2mat (optional, for plotting)
+
+Toolboxes:
+Mapping toolbox
+
+Software packages:
+VIC
+UW routing model
+
+Input files:
+Global parameter file
+Initial soil parameter file
+Routing model parameter file
+Discharge observations
+Glacier fraction map
+
+Control parameters:
+Directory to save VIC outputs
+Directory to save glacier melt model outputs
+Directory to save routing model inputs
+Directory to save routing model outputs
