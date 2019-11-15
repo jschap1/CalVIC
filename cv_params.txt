@@ -3,6 +3,7 @@
 # Locations of software packages ----------------------------
 vic_dir	/Volumes/
 rout_dir	/Volumes/
+sce_dir	/Volumes/
 
 # Input files -----------------------------------------------
 global_param_file	/Volumes/

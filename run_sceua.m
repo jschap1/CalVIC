@@ -1,6 +1,13 @@
 % SCE-UA wrapper
 %
 % Runs the SCE-UA calibration algorithm
+%
+% Update 11/15/2019 JRS
+% Rewritten as a function that can be compiled with mcc
+% Designed to use a control parameter file to define file locations, etc.
+% Work in progress. Will finish this later.
+
+function exitcode = run_sceua(parameter_file)
 
 addpath('/Users/jschap/Documents/MATLAB/sce_matlab');
 addpath('/Users/jschap/Documents/Codes/VICMATLAB/Subsetting')
