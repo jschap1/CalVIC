@@ -8,14 +8,14 @@
 % glacier_fraction = glacier fraction raster
 % indir = directory where flux files are stored
 % outdir = directory to write input files for the routing model
-% savename = filename to save data as a .mat file
+% saveloc = directory to save data as a .mat file
 % plotflag = flag for plotting
 %
 % TODO
 % It might be appropriate to also remove the portion of baseflow that
 % originates in the glaciated fraction of a pixel
 
-function add_glacier_contribution(ddf, glacier_fraction, indir, outdir, savename, plotflag)
+function add_glacier_contribution(ddf, glacier_fraction, indir, outdir, saveloc, plotflag)
 
 %% Initialization
 
@@ -97,8 +97,8 @@ m = ddf*PDD; % melt flux (mm)
 % recalculate total runoff
 r_total = gf.*m + (1-gf).*runoff_all;
 
-save(savename, 'r_total', 'gf', 'runoff_all', 'lat_all', 'lon_all')
-disp(['Saved glacier melt contribution to ' savename])
+save(fullfile(saveloc, 'glacier_contribution.mat'), 'r_total', 'gf', 'runoff_all', 'lat_all', 'lon_all')
+disp(['Saved glacier melt contribution to ' saveloc])
 
 %% Write modified runoff to routing model input files
 

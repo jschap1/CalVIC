@@ -1,19 +1,24 @@
 # Parameter file for CalVIC
+# Line numbers of this file must not be changed (given my current, primitive Matlab parameter file reader)
 
 # Locations of software packages ----------------------------
-vic_dir	/Volumes/
-rout_dir	/Volumes/
-sce_dir	/Volumes/
+vic_command	/Volumes/HD3/SWOTDA/Software/VIC5/vic/drivers/classic/vic_classic.exe
+rout_command	/Volumes/HD3/SWOTDA/Software/route_1.0/src/rout
+sce_dir	/Volumes/HD3/SWOTDA/Calibration/CalVIC/sce_matlab
 
 # Input files -----------------------------------------------
-global_param_file	/Volumes/
-init_soil_pars	/Volumes/
-init_rout_pars /Volumes/
-discharge_obs	/Volumes/
-glacier_fract_map	/Volumes/
+global_param_file	/Volumes/HD3/SWOTDA/Calibration/Pandoh2/par_2015_WB.txt
+init_soil_pars	/Volumes/HD3/SWOTDA/Calibration/Pandoh2/soils_pandoh.txt
+rout_param_file /Volumes/HD3/SWOTDA/Calibration/Pandoh2/rout_param.txt
+discharge_obs	/Volumes/HD3/SWOTDA/Calibration/Pandoh2/pandoh_inflow.txt
+glacier_fract_map	/Volumes/HD3/SWOTDA/Calibration/Pandoh2/pandoh_glacier_fract.tif
 
 # Control parameters ----------------------------------------
-vic_out_dir	/Volumes/
-glacier_out_dir	/Volumes/
-rout_in_dir	/Volumes/
-rout_out_dir	/Volumes/
+vic_out_dir	/Volumes/HD3/SWOTDA/Calibration/Pandoh2/out/vic_out_
+glacier_out_dir	/Volumes/HD3/SWOTDA/Calibration/Pandoh2/out/glacier_out_
+rout_in_dir	/Volumes/HD3/SWOTDA/Calibration/Pandoh2/out/rout_in_
+rout_out_dir	/Volumes/HD3/SWOTDA/Calibration/Pandoh2/out/rout_out_
+
+# SCE-UA parameters
+n_spinup	60
+n_complexes	1

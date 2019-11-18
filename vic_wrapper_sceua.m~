@@ -51,14 +51,12 @@ disp(['Created directory ', control_params.rout_out_dir])
 % Location to save the routing model outputs
 % filenames.soil_param = filenames.soil_initial;
 
-control_params.soil_param = control_params.init_soil_pars;
-
 %% Write soil parameter file using the parameters x
 
 % Load soil parameters
 if icall==1
      soils = load(control_params.init_soil_pars);
-%      control_params.soil_param = control_params.init_soil_pars;
+     control_params.soil_param = control_params.init_soil_pars;
 else
     soils = load(control_params.soil_param);
   
@@ -68,12 +66,8 @@ else
 
     soils(:,5) = x(1); % b_infilt
     soils(:,6) = x(2); % ds
-    soils(:,8) = x(3); % ws
-
-%     soils(:,5) = x(1); % b_infilt
-%     soils(:,6) = x(2); % ds
-%     soils(:,7) = x(3); % dsmax
-%     soils(:,8) = x(4); % ws
+    soils(:,7) = x(3); % dsmax
+    soils(:,8) = x(4); % ws
     
 %     soils(:,24) = x(5); % layer 2 soil depth
 %     soils(:,25) = x(6); % layer 3 soil depth
@@ -136,12 +130,12 @@ add_glacier_contribution(ddf, control_params.glacier_fract_map, ...
 
 % Write routing model input file
 B = read_global_param_file(control_params.rout_param_file);
-B{19} = fullfile(control_params.rout_in_dir, 'fluxes_');
-B{22} = [control_params.rout_out_dir '/'];
+B{19} = [control_params.rout_in_dir 'fluxes_'];
+B{22} = control_params.rout_out_dir;
 write_global_param_file(B, control_params.rout_param_file)
 
 % Run routing model
-rout_run_command = [control_params.rout_command ' ' control_params.rout_param_file];
+rout_run_command = [control_params.rout_command control_params.rout_pars];
 system(rout_run_command)
 
 % Remove existing unit hydrograph files
@@ -166,7 +160,7 @@ Qobs(Qobs<0) = NaN; % remove negative "observed" values of discharge
 % rout = dlmread(['/Volumes/HD3/SWOTDA/Calibration/onecell/vic_out_' num2str(icall) '/fluxes_31.84375_77.03125.txt'], '\t', 3, 0);
 % Q = rout(:,4) + rout(:,5);
 
-rout = load(fullfile(control_params.rout_out_dir, 'PAN1 .day'));
+rout = load(fullfile(control_params.rout_results, 'PAN1 .day'));
 time_rout = datetime(rout(:,1), rout(:,2), rout(:,3));
 Q = rout(:,4);
 
@@ -177,24 +171,26 @@ Qobs = Qobs(find(time_obs == start_time):find(time_obs == end_time));
 Q = Q(find(time_rout == start_time):find(time_rout == end_time));
 time_merged = time_rout(find(time_rout == start_time):find(time_rout == end_time));
 
-plotflag = 1;
+plotflag = 0;
 if plotflag
     figure
     jsplot(time_merged, Q, 'Flow', 'Time', 'Discharge (cfs)', 18)
     hold on
     plot(time_merged, Qobs)
     legend('Predicted','Observed','Location','NW')
-    saveas(gcf, fullfile(control_params.rout_out_dir, ['discharge_plot_iter_' num2str(icall), '.png']))
+    saveas(gcf, fullfile(control_params.rout_results, ['discharge_plot_iter_' num2str(icall), '.png']))
 end
 
 if length(Q) ~= length(Qobs)
-  error('Lengths of discharge records are not equal')
+  warning('Lengths are not equal, pausing')
+  pause;
 end
 
 %% Calculate error metric, ignore the first few time steps (spin-up)
 
-Qobs = Qobs(control_params.n_spinup:end);
-Q = Q(control_params.n_spinup:end);
+n_spinup = 60;
+Qobs = Qobs(n_spinup:end);
+Q = Q(n_spinup:end);
 
 error_metric = 'RMSE';
 if strcmp(error_metric, 'NSE')
