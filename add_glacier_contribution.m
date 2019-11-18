@@ -94,8 +94,22 @@ PDD = temperature_all;
 PDD(temperature_all<0) = 0;
 m = ddf*PDD; % melt flux (mm)
 
-% recalculate total runoff
-r_total = gf.*m + (1-gf).*runoff_all;
+%% Recalculate total runoff
+
+% Note that this syntax is valid beginning with Matlab R2016, when
+% Mathworks introduced arithmetic expansion. For earlier versions, a
+% different formula is required.
+
+% r_total = gf.*m + (1-gf).*runoff_all;
+sz2 = size(m, 2);
+r_total = repmat(gf, 1, sz2).*m + (1-repmat(gf, 1, sz2)).*runoff_all;
+
+% test
+% gf = rand(134,1);
+% m = 10*ones(134,31);
+% runoff_all = 15*ones(134,31);
+% r_total_2 = repmat(gf, 1, 31).*m + (1-repmat(gf, 1, 31)).*runoff_all;
+% ma_expansion = repmat(ma,3,1)
 
 save(fullfile(saveloc, 'glacier_contribution.mat'), 'r_total', 'gf', 'runoff_all', 'lat_all', 'lon_all')
 disp(['Saved glacier melt contribution to ' saveloc])

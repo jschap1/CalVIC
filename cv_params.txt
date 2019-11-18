@@ -19,6 +19,9 @@ glacier_out_dir	/Volumes/HD3/SWOTDA/Calibration/Pandoh2/out/glacier_out_
 rout_in_dir	/Volumes/HD3/SWOTDA/Calibration/Pandoh2/out/rout_in_
 rout_out_dir	/Volumes/HD3/SWOTDA/Calibration/Pandoh2/out/rout_out_
 
-# SCE-UA parameters
+# SCE-UA parameters --------------------------------------------
 n_spinup	60
 n_complexes	1
+
+# Parallelization parameters --------------------------------------------
+n_proc	1

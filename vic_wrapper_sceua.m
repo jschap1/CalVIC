@@ -115,13 +115,29 @@ write_global_param_file(A, control_params.global_param_file)
 %% Run VIC
 
 % Check if outputs already exist to avoid running VIC more than necessary
-
 fn1 = dir(fullfile(control_params.vic_out_dir, '*.txt'));
 if length(fn1)>0
+    
     disp('VIC has already been run for this iteration')
+    
 else
-    vic_run_command = [control_params.vic_command ' -g ' control_params.global_param_file];
-    system(vic_run_command)
+    
+    % Split the VIC run over multiple processors (for Hoffman2 UGE only)
+    if control_params.n_proc > 1
+
+        vic_exec_file = set_up_parallel(control_params);
+        vic_run_command = ['qsub -cwd -V -N PAN -l h_data=1024M,h_rt=00:30:00 -M $HOME -m bea -t 1-' num2str(control_params.n_proc) ':1 ' vic_exec_file];
+        system(vic_run_command)
+
+%         qsub -cwd -V -N PJ -l h_data=1024M,h_rt=01:00:00 -M $HOME -m bea -t 1-100:1 myFuncWrapper.sh
+        
+    else    
+    
+        vic_run_command = [control_params.vic_command ' -g ' control_params.global_param_file];
+        system(vic_run_command)
+        
+    end
+    
 end
 
 %% Adjust runoff for glacier melt contribution and write routing model input files
@@ -177,7 +193,7 @@ Qobs = Qobs(find(time_obs == start_time):find(time_obs == end_time));
 Q = Q(find(time_rout == start_time):find(time_rout == end_time));
 time_merged = time_rout(find(time_rout == start_time):find(time_rout == end_time));
 
-plotflag = 1;
+plotflag = 0;
 if plotflag
     figure
     jsplot(time_merged, Q, 'Flow', 'Time', 'Discharge (cfs)', 18)

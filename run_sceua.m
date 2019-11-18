@@ -12,7 +12,6 @@
 
 function exitcode = run_sceua(parameter_file)
 
-% addpath('/Users/jschap/Documents/MATLAB/sce_matlab');
 % addpath('/Users/jschap/Documents/Codes/VICMATLAB/Subsetting')
 % addpath('/Users/jschap/Documents/Codes/VICMATLAB/Make_Soils')
 % addpath('/Users/jschap/Documents/Codes/VICMATLAB/Control')
@@ -21,7 +20,7 @@ function exitcode = run_sceua(parameter_file)
 
 %% Read the parameter file ------------------------------------------------
 
-% parameter_file = '/Volumes/HD3/SWOTDA/Calibration/CalVIC/cv_params.txt';
+% parameter_file = '/Volumes/HD3/SWOTDA/Calibration/Pandoh2/cv_params.txt';
 
 B = read_parfile(parameter_file);
 
@@ -43,6 +42,12 @@ params.rout_out_dir = strsplit_spec(B{12});
 
 params.n_spinup = str2double(strsplit_spec(B{13}));
 params.n_complexes = str2double(strsplit_spec(B{14}));
+
+params.n_proc = str2double(strsplit_spec(B{15})); % number of processors to use
+params.jobarray_template = strsplit_spec(B{16}); 
+
+addpath(params.sce_dir);
+% addpath('/Users/jschap/Documents/MATLAB/sce_matlab');
 
 % ------------------------------------------------------------------------
 
