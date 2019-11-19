@@ -1,0 +1,20 @@
+% Post-processing
+%
+% Make plots from calibration output
+
+clear
+
+metadir = '/Volumes/HD3/SWOTDA/Calibration/Pandoh2/meta';
+fnames = dir([metadir '/*.mat']);
+ncalls = length(fnames); % number of function calls
+
+rmse = zeros(ncalls, 1);
+nse =  zeros(ncalls, 1);
+for k=1:ncalls
+    load(fullfile(metadir, fnames(k).name))
+    rmse(k) = f;
+    nse(k) = f_alt;
+end
+
+figure
+jsplot(1:ncalls, rmse, '', 'Function call

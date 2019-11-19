@@ -21,7 +21,8 @@ geotiffread2 (optional, for plotting)
 georefobj2mat (optional, for plotting)
 
 Toolboxes:
-Mapping toolbox
+Image Processing toolbox (optional, for plotting)
+Mapping toolbox (optional, for plotting)
 
 Software packages:
 VIC
