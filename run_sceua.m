@@ -44,7 +44,11 @@ params.n_spinup = str2double(strsplit_spec(B{13}));
 params.n_complexes = str2double(strsplit_spec(B{14}));
 
 params.n_proc = str2double(strsplit_spec(B{15})); % number of processors to use
-params.jobarray_template = strsplit_spec(B{16}); 
+params.meta_output = strsplit_spec(B{16}); % directory for meta outputs, like RMSE(t), etc.
+
+% time to wait in between runs 
+params.wait_time = str2double(strsplit_spec(B{17})); % minutes
+% (ensures that VIC files are completely done processing before moving on with the calibration
 
 addpath(params.sce_dir);
 % addpath('/Users/jschap/Documents/MATLAB/sce_matlab');
@@ -68,6 +72,8 @@ soils_init = load(params.init_soil_pars);
 
 ncells = size(soils_init, 1); % should be ~134 for Pandoh Dam watershed
 disp(['The number of grid cells is ' num2str(ncells)])
+
+params.ncells = ncells; % for input into vic_wrapper
 
 %%
 % Calibration parameters (all uniform): 
@@ -93,14 +99,14 @@ disp(['The number of grid cells is ' num2str(ncells)])
 % x0 = soils_pandoh(:,5)';
 
 % Everything but soil depth
-% bl = [1e-5, 1e-4, 0.01, 1e-4];
-% bu = [0.4, 1, 30, 1];
-% x0 = [soils_init(1,5), soils_init(1,6), soils_init(1,7), soils_init(1,8)];
+bl = [1e-5, 1e-4, 0.01, 1e-4];
+bu = [0.4, 1, 30, 1];
+x0 = [soils_init(1,5), soils_init(1,6), soils_init(1,7), soils_init(1,8)];
 
 % Calibrating on spatially uniform b_infilt, Ds, and Ws, 
-bl = [1e-5, 1e-4, 1e-4];
-bu = [0.4, 1, 1];
-x0 = [mean(soils_init(:,5)), mean(soils_init(:,6)), mean(soils_init(:,8))];
+% bl = [1e-5, 1e-4, 1e-4];
+% bu = [0.4, 1, 1];
+% x0 = [mean(soils_init(:,5)), mean(soils_init(:,6)), mean(soils_init(:,8))];
 
 % Function for running the VIC model and computing an error metric
 % !copy vic_wrapper_sceua.m functn.m

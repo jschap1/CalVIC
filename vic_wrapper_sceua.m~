@@ -32,10 +32,6 @@ control_params.rout_out_dir = [control_params.rout_out_dir num2str(icall)];
 mkdir(control_params.rout_out_dir)
 disp(['Created directory ', control_params.rout_out_dir])
 
-% Create directory for meta outputs
-mkdir(control_params.meta_output)
-disp(['Created directory ', control_params.meta_output])
-
 %% Other inputs (not used)
 
 % Template global parameter file
@@ -70,14 +66,14 @@ else
 %   soils(:,25) = x;
 %   soils(:,25) = mean(x);
 
-%     soils(:,5) = x(1); % b_infilt
-%     soils(:,6) = x(2); % ds
-%     soils(:,8) = x(3); % ws
-
     soils(:,5) = x(1); % b_infilt
     soils(:,6) = x(2); % ds
-    soils(:,7) = x(3); % dsmax
-    soils(:,8) = x(4); % ws
+    soils(:,8) = x(3); % ws
+
+%     soils(:,5) = x(1); % b_infilt
+%     soils(:,6) = x(2); % ds
+%     soils(:,7) = x(3); % dsmax
+%     soils(:,8) = x(4); % ws
     
 %     soils(:,24) = x(5); % layer 2 soil depth
 %     soils(:,25) = x(6); % layer 3 soil depth
@@ -130,7 +126,7 @@ else
     if control_params.n_proc > 1
 
         vic_exec_file = set_up_parallel(control_params);
-        vic_run_command = ['qsub -cwd -V -N PAN -l h_data=1024M,h_rt=00:30:00 -m bea -t 1-' num2str(control_params.n_proc) ':1 ' vic_exec_file];
+        vic_run_command = ['qsub -cwd -V -N PAN -l h_data=1024M,h_rt=00:30:00 -M $HOME -m bea -t 1-' num2str(control_params.n_proc) ':1 ' vic_exec_file];
         system(vic_run_command);
 
 %         qsub -cwd -V -N PJ -l h_data=1024M,h_rt=01:00:00 -M $HOME -m bea -t 1-100:1 myFuncWrapper.sh
@@ -148,7 +144,7 @@ else
     end
 
     disp('All files have been generated')
-    time_to_process_one_cell = control_params.wait_time*60; % enter time in minutes
+    time_to_process_one_cell = 2*60; % enter time in minutes
     disp(['Waiting ' num2str(time_to_process_one_cell/60) ' minutes to ensure all outputs are done'])
     pause(time_to_process_one_cell)    
     
@@ -241,7 +237,6 @@ end
 
 Qobs = Qobs(control_params.n_spinup:end);
 Q = Q(control_params.n_spinup:end);
-time_merged = time_merged(control_params.n_spinup:end);
 
 error_metric = 'RMSE';
 if strcmp(error_metric, 'NSE')
@@ -255,7 +250,9 @@ elseif strcmp(error_metric, 'RMSE')
 end
 
 meta_outname = fullfile(control_params.meta_output, ['meta_output_' num2str(icall), '.mat']);
-save(meta_outname, 'f','f_alt','Q','Qobs','time_merged','x')
-disp(['Saved metadata to ' meta_outname])
+save(meta_outname, 'f','f_alt','Q','Q_obs','','')
+
+
+
 
 return

@@ -21,14 +21,13 @@ mkdir(savedir)
 % savedir_soil = savedir; % directory to save the subsetted soil param files
 % savedir = '/Volumes/HD4/SWOTDA/Data/IRB/VIC/FullDomain/vic_parallel_WB_1980-2018'; % directory to save the newly created global param files
 
-[~, soil_basename, ~] = fileparts(control_params.init_soil_pars);
+[~, soil_basename, ~] = fileparts(control_params.soil_param);
 [~, global_basename, ~] = fileparts(control_params.global_param_file);
 
 % global_basename = './global_param_irb';
 
-soils_all = dlmread(control_params.init_soil_pars);
+soils_all = dlmread(control_params.soil_param);
 ncells = size(soils_all, 1);
-
 
 % how many divisions to divide the soil parameter file into
 n = control_params.n_proc;
