@@ -130,7 +130,7 @@ else
     if control_params.n_proc > 1
 
         vic_exec_file = set_up_parallel(control_params);
-        vic_run_command = ['qsub -cwd -V -N PAN -l h_data=1024M,h_rt=00:30:00 -m bea -t 1-' num2str(control_params.n_proc) ':1 ' vic_exec_file];
+        vic_run_command = ['qsub -cwd -V -N MYJOB -l h_data=1024M,h_rt=02:00:00 -m n -t 1-' num2str(control_params.n_proc) ':1 ' vic_exec_file];
         system(vic_run_command);
 
 %         qsub -cwd -V -N PJ -l h_data=1024M,h_rt=01:00:00 -M $HOME -m bea -t 1-100:1 myFuncWrapper.sh
@@ -197,6 +197,10 @@ system(rout_run_command)
 
 % Load gage discharge
 obs = dlmread(control_params.discharge_obs, '\t', 1, 0);
+
+% Note that the above line will fail if there are "NA" values in the
+% observations. Instead, use negative values as the NAflag.
+
 % obs = dlmread(control_params.discharge_obs, '\t', 3, 0);
 Qobs = obs(:,4);
 time_obs = datetime(obs(:,1), obs(:,2), obs(:,3));
@@ -212,7 +216,7 @@ Qobs(Qobs<0) = NaN; % remove negative "observed" values of discharge
 % rout = dlmread(['/Volumes/HD3/SWOTDA/Calibration/onecell/vic_out_' num2str(icall) '/fluxes_31.84375_77.03125.txt'], '\t', 3, 0);
 % Q = rout(:,4) + rout(:,5);
 
-rout = load(fullfile(control_params.rout_out_dir, 'PAN1 .day'));
+rout = load(fullfile(control_params.rout_out_dir, 'STA1 .day'));
 time_rout = datetime(rout(:,1), rout(:,2), rout(:,3));
 Q = rout(:,4);
 

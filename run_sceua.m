@@ -64,7 +64,8 @@ ngs = params.n_complexes; % number of complexes
 
 % soils_vg = load('/Volumes/HD3/VICParametersGlobal/Global_1_16/v1_4/Classic/soils_3L_MERIT.txt');
 % extent = '/Volumes/HD3/SWOTDA/FDT/v10282019/pandoh_basinmask_coarse.tif';
-% soils_pandoh = subset_soils(soils_vg, extent, './Pandoh/soils_pandoh.txt', '3l', 5);
+extent = '/Volumes/HD3/SWOTDA/FDT/v10282019/tarbela_basinmask_coarse.tif';
+soils_sub = subset_soils(soils_vg, extent, '/Volumes/HD3/SWOTDA/Calibration/Tarbela/soils_tarbela.txt', '3l', 5);
 % soils_pandoh = load('/Volumes/HD3/SWOTDA/Calibration/Pandoh/soils_pandoh.txt');
 
 % initial soil parameter file

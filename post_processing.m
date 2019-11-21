@@ -4,8 +4,8 @@
 
 clear
 
-metadir = '/Volumes/HD3/SWOTDA/Calibration/Pandoh2/meta';
-figdir = '/Volumes/HD3/SWOTDA/Calibration/Pandoh2/Figures';
+metadir = '/Volumes/HD3/SWOTDA/Calibration/Pandoh/meta';
+figdir = '/Volumes/HD3/SWOTDA/Calibration/Pandoh/Figures';
 mkdir(figdir)
 fnames = dir([metadir '/*.mat']);
 ncalls = length(fnames); % number of function calls
@@ -52,4 +52,23 @@ load(fullfile(metadir, fnames(34).name))
 plot(time_merged, Q)
 legend('Predicted (1)','Observed', 'Predicted (34)', 'Location','NW')
 
+%% Plot for IDRE poster
+
+figdir = '/Volumes/HD3/SWOTDA/Presentations/IDRE_Figures';
+
+% ff = 35.314666212661;
+ff = 1; % optional conversion factor
+
+% First iteration
+icall = 1;
+load(fullfile(metadir, fnames(icall).name))
+figure
+plot(time_merged, Qobs/ff, 'linewidth', 3)
+xlabel('Time')
+ylabel('Discharge (cfs)')
+title('Pandoh Dam')
+hold on
+plot(time_merged, Q/ff, 'linewidth', 3)
+legend('Observed','Predicted','Location','NW')
+set(gca, 'fontsize', 36)
 
