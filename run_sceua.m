@@ -21,38 +21,69 @@ function exitcode = run_sceua(parameter_file)
 %% Read the parameter file ------------------------------------------------
 
 % parameter_file = '/Volumes/HD3/SWOTDA/Calibration/Pandoh2/cv_params.txt';
+% parameter_file = '/Volumes/HD3/SWOTDA/Calibration/Lumped/Mangla/cv_params.sh';
+% parameter_file = '/Volumes/HD3/SWOTDA/Calibration/Lumped/Tarbela/cv_params.sh';
+% parameter_file = '/Volumes/HD3/SWOTDA/Calibration/Lumped/Bhakra/cv_params.sh';
+% parameter_file = '/Volumes/HD3/SWOTDA/Calibration/Lumped/Pandoh/cv_params.sh';
 
 B = read_parfile(parameter_file);
 
 params = struct();
+
+% Locations of software packages
 params.vic_command = strsplit_spec(B{1});
 params.rout_command = strsplit_spec(B{2});
 params.sce_dir = strsplit_spec(B{3});
 
+% Input files
 params.global_param_file = strsplit_spec(B{4});
 params.init_soil_pars = strsplit_spec(B{5});
-params.rout_param_file = strsplit_spec(B{6});
+params.rout_param_file = strsplit_spec(B{6}); % note that the stnloc station must be named STA1
 params.discharge_obs = strsplit_spec(B{7});
 params.glacier_fract_map = strsplit_spec(B{8});
 
+% Control parameters
 params.vic_out_dir = strsplit_spec(B{9});
 params.glacier_out_dir = strsplit_spec(B{10});
 params.rout_in_dir = strsplit_spec(B{11});
 params.rout_out_dir = strsplit_spec(B{12});
 
+% SCE-UA parameters
 params.n_spinup = str2double(strsplit_spec(B{13}));
 params.n_complexes = str2double(strsplit_spec(B{14}));
+params.max_iter = str2double(strsplit_spec(B{15})); % maximum allowable number of function evaluations
+params.kstop = str2double(strsplit_spec(B{16})); % maximum number of evolution loops before convergence
+params.pcento = str2double(strsplit_spec(B{17})); % percentage change allowed in kstop loops before convergence
+params.peps = str2double(strsplit_spec(B{18})); % controls when the SCE method converges
+params.iseed = str2double(strsplit_spec(B{19})); % random seed number for generating initial guesses
+params.iniflg = str2double(strsplit_spec(B{20})); % flag for initial parameter array
+params.soil_pars = str2double(strsplit(strsplit_spec(B{21}), ',')); % parameters to calibrate
+params.par_bounds = strsplit_spec(B{22}); % upper and lower bounds for calibration parameters
 
-params.n_proc = str2double(strsplit_spec(B{15})); % number of processors to use
-params.meta_output = strsplit_spec(B{16}); % directory for meta outputs, like RMSE(t), etc.
-
+% Parallelization parameters
+params.use_hoffman = str2double(strsplit_spec(B{23}));
+params.jobname = strsplit_spec(B{24});
+params.data_per_job = str2double(strsplit_spec(B{25})); % MB
+params.time_per_job = str2double(strsplit_spec(B{26})); % hours
+params.n_proc = str2double(strsplit_spec(B{27})); % number of processors to use
+params.wait_time = str2double(strsplit_spec(B{28})); % minutes
+params.meta_output = strsplit_spec(B{29}); % directory for meta outputs, like RMSE(t), etc.
 % time to wait in between runs 
-params.wait_time = str2double(strsplit_spec(B{17})); % minutes
 % (ensures that VIC files are completely done processing before moving on with the calibration
 
-addpath(params.sce_dir);
+% Glacier parameters
+params.add_glaciers = str2double(strsplit_spec(B{30})); % flag (0 or 1)
+params.ddf = str2double(strsplit_spec(B{31})); % mm/K/day;
+
+% Other parameters
+params.objective = strsplit_spec(B{32}); % RMSE or NSE
+params.all_outputs = str2double(strsplit_spec(B{33}));
+params.lumped = str2double(strsplit_spec(B{34})); % Lumped or distributed
+params.basin_area = str2double(strsplit_spec(B{35})); % km2, used for lumped model
+% addpath(params.sce_dir);
 % addpath('/Users/jschap/Documents/MATLAB/sce_matlab');
 
+%%
 % ------------------------------------------------------------------------
 
 % clearvars -except soils_vg;
@@ -64,8 +95,8 @@ ngs = params.n_complexes; % number of complexes
 
 % soils_vg = load('/Volumes/HD3/VICParametersGlobal/Global_1_16/v1_4/Classic/soils_3L_MERIT.txt');
 % extent = '/Volumes/HD3/SWOTDA/FDT/v10282019/pandoh_basinmask_coarse.tif';
-extent = '/Volumes/HD3/SWOTDA/FDT/v10282019/tarbela_basinmask_coarse.tif';
-soils_sub = subset_soils(soils_vg, extent, '/Volumes/HD3/SWOTDA/Calibration/Tarbela/soils_tarbela.txt', '3l', 5);
+% extent = '/Volumes/HD3/SWOTDA/FDT/v10282019/tarbela_basinmask_coarse.tif';
+% soils_sub = subset_soils(soils_vg, extent, '/Volumes/HD3/SWOTDA/Calibration/Tarbela/soils_tarbela.txt', '3l', 5);
 % soils_pandoh = load('/Volumes/HD3/SWOTDA/Calibration/Pandoh/soils_pandoh.txt');
 
 % initial soil parameter file
@@ -76,52 +107,20 @@ disp(['The number of grid cells is ' num2str(ncells)])
 
 params.ncells = ncells; % for input into vic_wrapper
 
-%%
-% Calibration parameters (all uniform): 
-% b_infilt [10^-5 to 0.4] % higher values increase runoff (column 5)
-% ds [0.001 to 1] % fraction of the Dsmax parameter at which non-linear
-% base-flow occurs (column 6)
-% dsmax (column 7)
-% ws [1e-4 to 1] % fraction of maximum soil moisture where non-linear
-% baseflow occurs; usually is greater than 0.5 (column 8)
-% layer 2, 3 soil depth % thicker soils decrease baseflow (columns 24, 25)
+% Read in calibration parameter bounds
+[bl, bu] = read_bounds(params.soil_pars, params.par_bounds);
 
-% bl = [1e-5, 1e-4, 0.01, 1e-4, 0.1, 0.3];
-% bu = [0.4, 1, 20, 1, 0.3, 1.5];
-% x0 = [soils_init(1,5), soils_init(1,6), soils_init(1,7), soils_init(1,8), soils_init(1,24), soils_init(1,25)];
-
-% bl = 0.3*ones(1,ncells);
-% bu = 1.5*ones(1,ncells);
-% x0 = soils_pandoh(:,25)';
-
-% % Spatially distributed b_infilt
-% bl = 1e-5*ones(1,ncells);
-% bu = 0.9*ones(1,ncells);
-% x0 = soils_pandoh(:,5)';
-
-% Everything but soil depth
-bl = [1e-5, 1e-4, 0.01, 1e-4];
-bu = [0.4, 1, 30, 1];
-x0 = [soils_init(1,5), soils_init(1,6), soils_init(1,7), soils_init(1,8)];
-
-% Calibrating on spatially uniform b_infilt, Ds, and Ws, 
-% bl = [1e-5, 1e-4, 1e-4];
-% bu = [0.4, 1, 1];
-% x0 = [mean(soils_init(:,5)), mean(soils_init(:,6)), mean(soils_init(:,8))];
-
-% Function for running the VIC model and computing an error metric
-% !copy vic_wrapper_sceua.m functn.m
-% Note: the ! means the command is to be executed by the OS
-% It is shorthand for system()
+% Get initial guesses
+x0 = soils_init(1,params.soil_pars);
 
 %% SCE-UA hyperparameters
 
-maxn = 50;
-kstop = 10;
-pcento = 1;
-peps = 0.01;
-iseed = -1;
-iniflg = 1;
+maxn = params.max_iter;
+kstop = params.kstop;
+pcento = params.pcento;
+peps = params.peps;
+iseed = params.iseed;
+iniflg = params.iniflg;
 
 %% Do SCE-UA
 

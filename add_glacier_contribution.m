@@ -4,7 +4,7 @@
 % Use this to update the VIC flux files with the adjusted runoff
 %
 % INPUTS
-% ddf = degree day factor for snow, mm/deg. C/day
+% ddf = degree day factor for snow and/or ice, mm/deg. C/day
 % glacier_fraction = glacier fraction raster
 % indir = directory where flux files are stored
 % outdir = directory to write input files for the routing model
@@ -14,27 +14,29 @@
 % TODO
 % It might be appropriate to also remove the portion of baseflow that
 % originates in the glaciated fraction of a pixel
+%
+% Updated 1/23/2020 JRS
+% Now uses separate degree-day factors for snow and ice.
+% Ice is not allowed to melt if there is any snow cover.
 
-function add_glacier_contribution(ddf, glacier_fraction, indir, outdir, saveloc, plotflag)
+function add_glacier_contribution(account_for_glaciers, ddf, glacier_fraction, indir, outdir, saveloc, plotflag)
 
 %% Initialization
 
 disp('Modifying runoff to account for glacier contribution')
-disp(['Degree-day factor assumed to be ' num2str(ddf) ' mm/K/day'])
+
+if length(ddf) == 1
+    disp(['Degree-day factor for ice assumed to be ' num2str(ddf) ' mm/K/day'])
+elseif length(ddf) == 2
+    disp(['Degree-day factor for ice assumed to be ' num2str(ddf(1)) ' mm/K/day'])
+    disp(['Degree-day factor for snow assumed to be ' num2str(ddf(2)) ' mm/K/day'])
+end
 
 if plotflag
   disp('Plots will be generated')
 else
   disp('No plots will be generated')
 end
-
-% load glacier fraction data
-[glacierfract, R] = geotiffread(glacier_fraction);
-% Should use a different glacier fraction for each timestep
-
-%%% To turn off the glacier contribution ----------------------------
-% glacierfract = zeros(size(glacierfract));
-% -------------------------------------------------------------------
 
 % load surface temperature and runoff data
 fluxnames = dir(fullfile(indir, 'fluxes*'));
@@ -77,52 +79,65 @@ for k=1:ncells
 
 end
 
-%% Calculate melt runoff using degree-day model
-
-% get glacier fraction for this grid cell (location is inexact because the
-% domains are slightly different)
-[gc_r, gc_c] = latlon2pix(R, lat_all, lon_all);
-gc_r = round(gc_r);
-gc_c = round(gc_c);
-
-gf = zeros(ncells, 1);
-for k=1:ncells
-    gf(k) = glacierfract(gc_r(k), gc_c(k));
-end
-
-PDD = temperature_all;
-PDD(temperature_all<0) = 0;
-m = ddf*PDD; % melt flux (mm)
-
 %% Recalculate total runoff
 
-% Note that this syntax is valid beginning with Matlab R2016, when
-% Mathworks introduced arithmetic expansion. For earlier versions, a
-% different formula is required.
+if account_for_glaciers
+    
+    % load glacier fraction data
+    [glacierfract, R] = geotiffread(glacier_fraction);
+    % Should use a different glacier fraction for each timestep
 
-% r_total = gf.*m + (1-gf).*runoff_all;
-sz2 = size(m, 2);
-r_total = repmat(gf, 1, sz2).*m + (1-repmat(gf, 1, sz2)).*runoff_all;
+    %%% To turn off the glacier contribution ----------------------------
+    % glacierfract = zeros(size(glacierfract));
+    % -------------------------------------------------------------------
+    
+    % Calculate melt runoff using degree-day model
+    % get glacier fraction for this grid cell (location is inexact because the
+    % domains are slightly different)
+    [gc_r, gc_c] = latlon2pix(R, lat_all, lon_all);
+    gc_r = round(gc_r);
+    gc_c = round(gc_c);
 
-% test
-% gf = rand(134,1);
-% m = 10*ones(134,31);
-% runoff_all = 15*ones(134,31);
-% r_total_2 = repmat(gf, 1, 31).*m + (1-repmat(gf, 1, 31)).*runoff_all;
-% ma_expansion = repmat(ma,3,1)
+    gf = zeros(ncells, 1);
+    for k=1:ncells
+        gf(k) = glacierfract(gc_r(k), gc_c(k));
+    end
 
-save(fullfile(saveloc, 'glacier_contribution.mat'), 'r_total', 'gf', 'runoff_all', 'lat_all', 'lon_all')
-disp(['Saved glacier melt contribution to ' saveloc])
+    PDD = temperature_all;
+    PDD(temperature_all<0) = 0;
+    m = ddf*PDD; % melt flux (mm)    
+    
+    % Note that this syntax is valid beginning with Matlab R2016, when
+    % Mathworks introduced arithmetic expansion. For earlier versions, a
+    % different formula is required.
+
+    % r_total = gf.*m + (1-gf).*runoff_all;
+    sz2 = size(m, 2);
+    r_total = repmat(gf, 1, sz2).*m + (1-repmat(gf, 1, sz2)).*runoff_all;
+
+    disp('Removing baseflow from glaciated area')
+    disp('This may/may not be the correct decision')
+    baseflow_total = (1-repmat(gf, 1, sz2)).*baseflow_all;    
+    
+    % test
+    % gf = rand(134,1);
+    % m = 10*ones(134,31);
+    % runoff_all = 15*ones(134,31);
+    % r_total_2 = repmat(gf, 1, 31).*m + (1-repmat(gf, 1, 31)).*runoff_all;
+    % ma_expansion = repmat(ma,3,1)
+
+    save(fullfile(saveloc, 'glacier_contribution.mat'), 'r_total', 'gf', 'runoff_all', 'lat_all', 'lon_all')
+    disp(['Saved glacier melt contribution to ' saveloc])
+
+end % accounting for glaciers
 
 %% Write modified runoff to routing model input files
 
 disp(['Writing routing model input files to ' outdir]);
 
-account_for_glaciers = 1;
 for k=1:ncells
-    
     if account_for_glaciers
-        routing_input = [raw_output(:,1:3) zeros(nsteps, 2) r_total(k,:)' baseflow_all(k,:)'];
+        routing_input = [raw_output(:,1:3) zeros(nsteps, 2) r_total(k,:)' baseflow_total(k,:)'];
     else
         routing_input = [raw_output(:,1:3) zeros(nsteps, 2) runoff_all(k,:)' baseflow_all(k,:)'];
     end

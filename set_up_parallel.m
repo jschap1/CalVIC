@@ -106,7 +106,7 @@ end
 parfilenam = fullfile(savedir, [globname '_${SGE_TASK_ID}' globext]);
 vic_run_command = [control_params.vic_command ' -g ' parfilenam];
 
-outname = fullfile(fileparts(control_params.vic_out_dir), 'vic_parallel_wrapper.sh');
+outname = fullfile(fileparts(control_params.out_dir), 'vic_parallel_wrapper.sh');
 A = cell(3,1);
 A{1} = '#!/bin/bash';
 A{2} = 'echo $SGE_TASK_ID';

@@ -53,7 +53,7 @@ if fnew > fw;
 % Both reflection and contraction have failed, attempt a random point;
     if fnew > fw;
         snew = bl + rand(1,nopt).*(bu-bl);
-        fnew = vic_wrapper_sceua(nopt, snew, icall);
+        fnew = vic_wrapper_sceua(nopt, snew, control_params, icall);
         icall = icall + 1;
     end;
 end;

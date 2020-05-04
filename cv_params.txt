@@ -21,7 +21,31 @@ rout_out_dir	/Volumes/HD3/SWOTDA/Calibration/Pandoh2/out/rout_out_
 
 # SCE-UA parameters --------------------------------------------
 n_spinup	60
-n_complexes	1
+n_complexes	4
+max_iter	50
+kstop	10
+pcento	1
+peps	0.01
+iseed	-1
+iniflg	1
+
+# Enter columns in the soil parameter file you wish to calibrate
+soil_pars	5,6,7,8
+par_bounds	/Volumes/HD3/SWOTDA/Calibration/CalVIC/parameter_bounds.txt
 
 # Parallelization parameters --------------------------------------------
-n_proc	1
+use_hoffman	1
+jobname	MYJOB
+data_per_job	1024
+time_per_job	0.5
+n_proc	20
+wait_time	7
+meta_out_dir	/Volumes/HD3/SWOTDA/Calibration/Pandoh2/out/meta/
+
+% Glacier model parameters -------------------------------------------
+add_glacier_contribution	1
+ddf	7
+
+% Other parameters -------------------------------------------
+objective	RMSE
+
