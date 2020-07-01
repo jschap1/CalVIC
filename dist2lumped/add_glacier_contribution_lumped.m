@@ -19,8 +19,8 @@ function add_glacier_contribution_lumped(control_params)
 
 %% Initialization
 
-disp('Modifying runoff to account for glacier contribution')
-disp(['Degree-day factor assumed to be ' num2str(control_params.ddf) ' mm/K/day'])
+% disp('Modifying runoff to account for glacier contribution')
+% disp(['Degree-day factor assumed to be ' num2str(control_params.ddf) ' mm/K/day'])
 
 % load surface temperature and runoff data
 fluxnames = dir(fullfile(control_params.vic_out_dir, 'fluxes*'));
@@ -29,7 +29,7 @@ raw_output = dlmread(fullfile(control_params.vic_out_dir, fluxnames(1).name), '\
 nsteps = size(raw_output, 1);
 ncells = length(fluxnames);
 
-disp(['Modifying runoff for ' num2str(ncells) ' grid cells'])
+% disp(['Modifying runoff for ' num2str(ncells) ' grid cells'])
 
 runoff_all = zeros(ncells, nsteps);
 baseflow_all = zeros(ncells, nsteps);
@@ -37,7 +37,7 @@ temperature_all = zeros(ncells, nsteps);
 lat_all = zeros(ncells, 1);
 lon_all = zeros(ncells, 1);
 
-disp('Loading runoff, baseflow, and temperature data from VIC results')
+% disp('Loading runoff, baseflow, and temperature data from VIC results')
 for k=1:ncells
 
     % get lat/lon for the cell
@@ -51,7 +51,8 @@ for k=1:ncells
     lon_all(k) = str2double([tmpcell{3} '.' tmpcell{4}]);
 
     raw_output = dlmread(fullfile(control_params.vic_out_dir, fluxnames(k).name), '\t', 3, 0);
-
+ 
+    % Make sure the outputs are kept to a minimum
     runoff_all(k,:) = raw_output(:,4);
     baseflow_all(k,:) = raw_output(:,5);
     temperature_all(k,:) = raw_output(:,6);

@@ -1,0 +1,8 @@
+library(rgdal)
+library(geosphere)
+library(raster)
+library(rgeos)
+basinmask <- raster("/home/jschap/Documents/ESSD/data/colo_mask.tif")
+bb <- rasterToPolygons(basinmask, dissolve = TRUE)
+plot(bb)
+centroid(bb)

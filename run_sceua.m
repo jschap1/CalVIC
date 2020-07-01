@@ -1,4 +1,4 @@
-% SCE-UA wrapper
+% Run SCE-UA
 %
 % Runs the SCE-UA calibration algorithm
 %
@@ -9,14 +9,21 @@
 % Update 11/18/2019 JRS
 % Now written to make use of multiple processors by splitting the soil
 % parameter file into multiple files
+%
+% Update/adapted for one grid cell simulation of the UCRB with monthly
+% naturalized streamflow data 5/4/2020
+%
+% Should really adjust this to output the corresponding iteration and RMSE
+% value
 
-function exitcode = run_sceua(parameter_file)
+function [bestx, bestf, xf, ICALL, PX, PF] = run_sceua(parameter_file)
 
 % addpath('/Users/jschap/Documents/Codes/VICMATLAB/Subsetting')
 % addpath('/Users/jschap/Documents/Codes/VICMATLAB/Make_Soils')
 % addpath('/Users/jschap/Documents/Codes/VICMATLAB/Control')
 % cd('/Volumes/HD3/SWOTDA/Calibration')
-% addpath(genpath('/Volumes/HD3/SWOTDA/Calibration/CalVIC'))
+% addpath(genpath('/home/jschap/Documents/Codes/CalVIC'))
+% addpath(genpath('/home/jschap/Documents/Codes/VICMATLAB/vicmatlab'))
 
 %% Read the parameter file ------------------------------------------------
 
@@ -25,6 +32,8 @@ function exitcode = run_sceua(parameter_file)
 % parameter_file = '/Volumes/HD3/SWOTDA/Calibration/Lumped/Tarbela/cv_params.sh';
 % parameter_file = '/Volumes/HD3/SWOTDA/Calibration/Lumped/Bhakra/cv_params.sh';
 % parameter_file = '/Volumes/HD3/SWOTDA/Calibration/Lumped/Pandoh/cv_params.sh';
+
+% parameter_file = '/home/jschap/Documents/ESSD/lumped_cal/t3_only/cv_params.txt';
 
 B = read_parfile(parameter_file);
 
@@ -76,7 +85,7 @@ params.add_glaciers = str2double(strsplit_spec(B{30})); % flag (0 or 1)
 params.ddf = str2double(strsplit_spec(B{31})); % mm/K/day;
 
 % Other parameters
-params.objective = strsplit_spec(B{32}); % RMSE or NSE
+params.objective = strsplit_spec(B{32}); % RMSE, NSE, or KGE
 params.all_outputs = str2double(strsplit_spec(B{33}));
 params.lumped = str2double(strsplit_spec(B{34})); % Lumped or distributed
 params.basin_area = str2double(strsplit_spec(B{35})); % km2, used for lumped model
@@ -124,22 +133,15 @@ iniflg = params.iniflg;
 
 %% Do SCE-UA
 
-[bestx,bestf] = sceua(params, x0,bl,bu,maxn,kstop,pcento,peps,ngs,iseed,iniflg);
+% xf is the vector of objective function values
+[bestx,bestf,xf] = sceua(params, x0,bl,bu,maxn,kstop,pcento,peps,ngs,iseed,iniflg);
  
-% Keep in mind how long it takes to run one iteration of the VIC model
-% For the Pandoh basin, with 134 grid cells, it takes about 4.5 hours to
-% run VIC using energy balance, frozen soils, and snowbands for 2010-2019.
-%
-% In water balance mode only, it takes about 47 minutes for 2010-2019.
-% In water balance mode only, it takes about 4 minutes for 2015.
-% BUT --> it can get stuck when you change the parameters!
-
-exitcode = 1;
-
 %% Run one more simulation with the estimated parameters
 % 
+
+% bestx = [0.1393    0.0551    0.7840    0.7171    0.2757    1.0483];
 % icall_final = 9999;
-% f = vic_wrapper_sceua(length(bestx), bestx, icall_final);
+% f = vic_wrapper_sceua(length(bestx), bestx, params, icall_final);
 
 return
 

@@ -10,21 +10,34 @@ clearvars -except soils
 %% Inputs
 
 basin = struct();
-basin.shape = shaperead('/Volumes/HD3/SWOTDA/FDT/v10282019/tarbela.shp');
-[basin.mask, basin.R] = geotiffread('/Volumes/HD3/SWOTDA/FDT/v10282019/tarbela_basinmask_coarse.tif');
-soilfile = '/Volumes/HD3/SWOTDA/Calibration/Tarbela/soils_tarbela.txt';
+% basin.shape = shaperead('/Volumes/HD3/SWOTDA/FDT/v10282019/tarbela.shp');
+[basin.mask, basin.R] = geotiffread('/home/jschap/Documents/ESSD/data/colo_mask.tif');
+soilfile = '/home/jschap/Documents/ESSD/clipped_soils_VG.txt';
 basin.soils = load(soilfile);
-prefix = 'Forcings_';
-forcdir = '/Volumes/HD2/ascii_2013-2019';
-newforcdir = '/Volumes/HD3/SWOTDA/Calibration/Lumped/Tarbela/ascii_2013-2019';
+prefix = 'full_data_';
+forcdir = '/media/jschap/HD_ExFAT/ucrb/disagg_forcings_L13';
+newforcdir = '/home/jschap/Documents/ESSD/lumped_cal/forc';
 [soil_lon, soil_lat] = subset_forcings(soilfile, forcdir, prefix, newforcdir);
+
+
+% 
+% Default values for optional arguments
+% numforcings = 4;
+% grid_decimal = 5;
+% has_lots_of_ram = 0;
+%
+% Requires PREC, TMIN, TMAX, WIND forcings in NetCDF files, one per year
+
+data_cum = subset_forcings(indir, outdir, beginyear, endyear, maskname, varargin)
+
 
 % Lumped forcing outname
 % centroid of the basin, calculated in R
 % centroid = [77.28219, 31.91625]; % pandoh
 % centroid = [74.337 34.15264]; % mangla
 % centroid = [79.19863 , 31.58022]; % bhakra
-centroid = [76.67843 34.45868]; % tarbela
+% centroid = [76.67843 34.45868]; % tarbela
+centroid = [-109.0225, 39.24321]; % upper colorado
 
 forc_out = [prefix num2str(centroid(2), '%3.5f') '_' num2str(centroid(1), '%3.5f')];
 

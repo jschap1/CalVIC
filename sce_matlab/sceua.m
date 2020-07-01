@@ -1,5 +1,5 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function [bestx,bestf] = sceua(control_params, x0,bl,bu,maxn,kstop,pcento,peps,ngs,iseed,iniflg)
+function [bestx,bestf, xf] = sceua(control_params, x0,bl,bu,maxn,kstop,pcento,peps,ngs,iseed,iniflg)
 
 % This is the subroutine implementing the SCE algorithm,
 % written by Q.Duan, 9/2004
@@ -71,6 +71,7 @@ nloop=0;
 icall=0;
 for i=1:npt;
     xf(i) = vic_wrapper_sceua(nopt,x(i,:), control_params, icall);
+%     xf(i) = vic_wrapper_sceua(nopt,x(i,:), control_params, icall);
     icall = icall + 1;
 end;
 f0=xf(1);

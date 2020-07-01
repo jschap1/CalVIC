@@ -10,6 +10,11 @@
 
 function f = vic_wrapper_sceua(nopt, x, control_params, icall)
 
+% These parameters might be better placed in the cv_params file.
+soil_line = 154;
+log_out_line = 182;
+out_line = 183;
+
 icall = icall + 1; % using 1-indexing instead of 0-indexing
 
 if control_params.all_outputs
@@ -119,11 +124,11 @@ A = read_global_param_file(control_params.global_param_file);
 % end
 
 % Change the reference to the soil parameter file
-A{153} = ['SOIL ' control_params.soil_param];
+A{soil_line} = ['SOIL ' control_params.soil_param];
 
 % Change output directory
-A{181} = ['LOG_DIR ' control_params.vic_out_dir '/'];
-A{182} = ['RESULT_DIR ' control_params.vic_out_dir '/'];
+A{log_out_line} = ['LOG_DIR ' control_params.vic_out_dir '/'];
+A{out_line} = ['RESULT_DIR ' control_params.vic_out_dir '/'];
 
 % Write global parameter file
 % filenames.global_param = ['/Volumes/HD3/SWOTDA/Calibration/Pandoh/global_param_' num2str(icall) '.txt'];
@@ -197,7 +202,7 @@ end
 %% Adjust runoff for glacier melt contribution and write routing model input files
 
 if control_params.lumped
-   disp('Adding glacier melt contribution');
+%    disp('Adding glacier melt contribution');
 %    disp('Glacier melt contribution is not currently supported for lumped modeling');
    add_glacier_contribution_lumped(control_params)
 else
@@ -237,15 +242,25 @@ end
 %% Compute error metric
 
 % Load gage discharge
-obs = dlmread(control_params.discharge_obs, '\t', 1, 0);
+
+monthly_flag = 1;
+if monthly_flag
+    disp('Monthly gage data')
+    obs = readmatrix(control_params.discharge_obs); % default units are cms
+    time_obs = datetime(obs(:,1), obs(:,2), 15);
+else
+    disp('Daily gage data')
+    obs = dlmread(control_params.discharge_obs, '\t', 1, 0); % default units are cfs
+    time_obs = datetime(obs(:,1), obs(:,2), obs(:,3));    
+end
 Qobs = obs(:,4);
-time_obs = datetime(obs(:,1), obs(:,2), obs(:,3));
 Qobs(Qobs<0) = NaN; % remove negative "observed" values of discharge
+% figure, plot(time_obs, Qobs)
 
 if control_params.lumped
     % Workflow for lumped basin modeling/comparison
-    Qobs = (12/39.37)^3*Qobs; % convert to m3/s
-    disp('Converted discharge observations from cfs to m3s')
+%     Qobs = (12/39.37)^3*Qobs; % convert to m3/s
+%     disp('Converted discharge observations from cfs to m3s')
     graph_units = 'm^3/s';
     
     if control_params.add_glaciers
@@ -311,20 +326,36 @@ time_rout = datetime(rout(:,1), rout(:,2), rout(:,3));
 % Q = rout(:,4) + rout(:,5);
 
 % Make sure the two time series are consistent
+if monthly_flag
+    [time_rout, Q] = daily_to_monthly(time_rout, Q, 'mean');
+end
+
 start_time = max(time_rout(1), time_obs(1));
 end_time = min(time_rout(end), time_obs(end));
 Qobs = Qobs(find(time_obs == start_time):find(time_obs == end_time));
 Q = Q(find(time_rout == start_time):find(time_rout == end_time));
 time_merged = time_rout(find(time_rout == start_time):find(time_rout == end_time));
 
+% Plot once every 10 function calls
+% if mod(icall,10) == 0
+%     plotflag = 1;
+% else
+%     plotflag = 0;
+% end
 plotflag = 1;
 if plotflag
-    figure
-    jsplot(time_merged, Q, 'Flow', 'Time', ['Discharge (' graph_units ')'], 18);
+    figure('Visible','off')
+    set(gcf,'Visible','off','CreateFcn','set(gcf,''Visible'',''on'')')
+    plot(time_merged, Q)
+    xlabel('Time')
+    ylabel('Flow')
+    title(['Discharge (' graph_units ')'])
+    set(gca, 'fontsize', 18)   
     hold on
     plot(time_merged, Qobs)
     legend('Predicted','Observed','Location','NW')
     saveas(gcf, fullfile(control_params.rout_out_dir, ['discharge_plot_iter_' num2str(icall), '.png']))
+    close(gcf)
 end
 
 if length(Q) ~= length(Qobs)
@@ -341,17 +372,21 @@ error_metric = control_params.objective;
 if strcmp(error_metric, 'NSE')
   f = -1*myNSE(Qobs, Q); % to maximize NSE, minimize -NSE
   f_alt = myRMSE(Qobs, Q); % calculate both parameters, either way
-  disp(['NSE for iteration ' num2str(icall) ' is ' num2str(f)])
+  disp(['NSE for iteration ' num2str(icall) ' is ' num2str(-1*f)])
 elseif strcmp(error_metric, 'RMSE')
   f = myRMSE(Qobs, Q);
   f_alt = myNSE(Qobs, Q);
   disp(['RMSE for iteration ' num2str(icall) ' is ' num2str(f)])
+elseif strcmp(error_metric, 'KGE')
+  f = -1*myKGE(Qobs, Q);
+  f_alt = myNSE(Qobs, Q);
+  disp(['KGE for iteration ' num2str(icall) ' is ' num2str(-1*f)])
 end
 
 meta_outname = fullfile(control_params.meta_output, ['meta_output_' num2str(icall), '.mat']);
 save(meta_outname, 'f','f_alt','Q','Qobs','time_merged','x')
-disp(['Saved metadata to ' meta_outname])
+% disp(['Saved metadata to ' meta_outname])
 
-pause
+% pause
 
 return
