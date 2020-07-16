@@ -1,6 +1,6 @@
 % Updated version of CalVIC for the UCRB model
 %
-% July 6, 2020 JRS
+% July 16, 2020 JRS
 %
 %
 
@@ -15,7 +15,6 @@ pcento = 1; % pcento (percentage by which the criterion value must change in giv
 peps = 0.01; % convergence level for parameter set (lower number means smaller difference between parameters of the population required for stop)
 iseed = 704753262; % initial (random) seed
 iniflg = 1; % flag for whether to count initial iteration
-
 ngs = 2; % number of complexes
 
 %% Initial guess for parameters
@@ -27,7 +26,8 @@ ngs = 2; % number of complexes
 % bu = [0.4, 0.5, 30, 1, 2.5, 1800]; % upper bound
 
 % b, t3, dsmax
-x0 = [0.2438722, 2.094797, 28.66799];
+% x0 = [0.2438722, 2.094797, 28.66799];
+x0 = [0.11, 1.8, 1.8];
 % x0 = [0.1366702, 2.0151629, 1.6731925];
 bl = [0.001, 0.5, 0.001];
 bu = [0.4, 2.5, 30];

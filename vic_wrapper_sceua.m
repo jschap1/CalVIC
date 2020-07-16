@@ -40,9 +40,9 @@ system(vic_run_command);
 
 %% Calculate summed runoff and baseflow
 
-wbfile = '/home/jschap/Documents/ESSD/lumped_cal/dds/WY2002-2005_kitchen_sink/validation/wb_39.24321_-109.02250.txt';
+wbfile = '/home/jschap/Documents/ESSD/lumped_cal/sceua/wb_39.24321_-109.02250.txt';
 wb = readmatrix(wbfile);
-nspinup = 365;
+nspinup = 0;
 wb = wb((nspinup+1):end, :);
 
 qd = wb(:,5);
@@ -74,8 +74,9 @@ if plotflag
     lw = 1.5;
     figure, plot(t_m, q_m, 'linewidth', lw)
     hold on, plot(t,q, 'linewidth', lw)
-    xline(datetime(2005, 10, 1), '--', 'linewidth', lw)
-    legend('pred','obs', 'cal/val')   
+%     xline(datetime(2005, 10, 1), '--', 'linewidth', lw)
+    legend('pred','obs')
+%     legend('pred','obs', 'cal/val')
     xlabel('Time')
     ylabel('Monthly streamflow (m^3/s)')
     set(gca, 'fontsize', 16)

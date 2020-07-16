@@ -1,0 +1,5 @@
+site_name: CalVIC
+nav:
+  - Main: index.md
+  - Tutorial: tutorial.md
+theme: readthedocs
