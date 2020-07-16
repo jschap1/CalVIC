@@ -1,5 +1,5 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function [snew,fnew,icall]=cceua(control_params, s,sf,bl,bu,icall,maxn)
+function [snew,fnew,icall]=cceua(s,sf,bl,bu,icall,maxn)
 %  This is the subroutine for generating a new point in a simplex
 %
 %   s(.,.) = the sorted simplex in order of increasing function values
@@ -15,6 +15,8 @@ function [snew,fnew,icall]=cceua(control_params, s,sf,bl,bu,icall,maxn)
 %   iviol = flag indicating if constraints are violated
 %         = 1 , yes
 %         = 0 , no
+
+plotflag = 0;
 
 [nps,nopt]=size(s);
 n = nps;
@@ -40,20 +42,20 @@ s1=bu-snew; idx=find(s1<0); if ~isempty(idx); ibound=2; end;
 if ibound >=1; 
     snew = bl + rand(1,nopt).*(bu-bl);
 end;
-fnew = vic_wrapper_sceua(nopt, snew, control_params, icall);
+fnew = vic_wrapper_sceua(nopt, snew, icall, plotflag);
 
 icall = icall + 1;
 
 % Reflection failed; now attempt a contraction point:
 if fnew > fw;
     snew = sw + beta*(ce-sw);
-    fnew = vic_wrapper_sceua(nopt, snew, control_params, icall);
+    fnew = vic_wrapper_sceua(nopt, snew, icall, plotflag);
     icall = icall + 1;
 
 % Both reflection and contraction have failed, attempt a random point;
     if fnew > fw;
         snew = bl + rand(1,nopt).*(bu-bl);
-        fnew = vic_wrapper_sceua(nopt, snew, control_params, icall);
+        fnew = vic_wrapper_sceua(nopt, snew, icall, plotflag);
         icall = icall + 1;
     end;
 end;

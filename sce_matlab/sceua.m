@@ -1,5 +1,5 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function [bestx,bestf, xf] = sceua(control_params, x0,bl,bu,maxn,kstop,pcento,peps,ngs,iseed,iniflg)
+function [bestx,bestf, xf] = sceua(x0,bl,bu,maxn,kstop,pcento,peps,ngs,iseed,iniflg)
 
 % This is the subroutine implementing the SCE algorithm,
 % written by Q.Duan, 9/2004
@@ -70,7 +70,7 @@ if iniflg==1; x(1,:)=x0; end;
 nloop=0;
 icall=0;
 for i=1:npt;
-    xf(i) = vic_wrapper_sceua(nopt,x(i,:), control_params, icall);
+    xf(i) = vic_wrapper_sceua(nopt,x(i,:), icall, 0);
 %     xf(i) = vic_wrapper_sceua(nopt,x(i,:), control_params, icall);
     icall = icall + 1;
 end;
@@ -151,7 +151,7 @@ while icall<maxn & gnrng>peps & criter_change>pcento;
             s = zeros(nps,nopt);
             s=cx(lcs,:); sf = cf(lcs);
 
-            [snew,fnew,icall]=cceua(control_params, s,sf,bl,bu,icall,maxn);
+            [snew,fnew,icall]=cceua(s,sf,bl,bu,icall,maxn);
 
             % Replace the worst point in Simplex with the new point:
             s(nps,:) = snew; sf(nps) = fnew;
