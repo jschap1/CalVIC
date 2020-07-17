@@ -92,6 +92,8 @@ How does this affect the VIC simulation results?
 
 Initial soil moisture matters until around April 1, after that, it doesn't matter which initial soil moisture is used. This is for the lumped UCRB simulation. Results may not generalize for a distributed simulation or for other basins. Need to review the literature/do more research.
 
+Butt.
+
 ## Distributed UCRB calibration
 
 ## Implementation on Hoffman2 computing cluster
