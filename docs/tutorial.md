@@ -88,7 +88,19 @@ I initialized soil moisture using the code `.../ESSD/codes/initial_sm.m`. After 
 How does this affect the VIC simulation results?
 
 ![plot of soil moisture](/docs/img/soil_moisture_spinup.png)
+
+
 ![plot of discharge](/docs/img/q_spinup.png)
+
+Agfain.
+![plot of discharge](https://jschap1.github.io/CalVIC/img/q_spinup.png)
+
+
+Agfain1
+![plot of discharge](/img/q_spinup.png)
+
+
+
 
 Initial soil moisture matters until around April 1, after that, it doesn't matter which initial soil moisture is used. This is for the lumped UCRB simulation. Results may not generalize for a distributed simulation or for other basins. Need to review the literature/do more research.
 

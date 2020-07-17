@@ -166,10 +166,10 @@ bu = [0.4, 2.5, 30]; % upper bounds
 </ol>
 <p>I initialized soil moisture using the code <code>.../ESSD/codes/initial_sm.m</code>. After 5 iterations, the initial soil moisture values converged, and the average values on Oct. 1 were 13.0193, 30.7796, and 227.6586 mm for layers 1-3. Without performing soil moisture spin-up, we would be using initial moisture equal to 31.092, 62.184, and 231.166 mm, which means that we probably were overestimating soil moisture by quite a lot in the top two soil layers.</p>
 <p>How does this affect the VIC simulation results?</p>
-<p><img alt="plot of soil moisture" src="/img/soil_moisture_spinup.png" />
-<img alt="plot of discharge" src="/img/q_spinup.png" /></p>
+<p><img alt="plot of soil moisture" src="/docs/img/soil_moisture_spinup.png" />
+<img alt="plot of discharge" src="/docs/img/q_spinup.png" /></p>
 <p>Initial soil moisture matters until around April 1, after that, it doesn't matter which initial soil moisture is used. This is for the lumped UCRB simulation. Results may not generalize for a distributed simulation or for other basins. Need to review the literature/do more research.</p>
-<p>Butt.</p>
+<p>Butt. Butt.</p>
 <h2 id="distributed-ucrb-calibration">Distributed UCRB calibration</h2>
 <h2 id="implementation-on-hoffman2-computing-cluster">Implementation on Hoffman2 computing cluster</h2>
 <h2 id="irb-sub-basin-calibration">IRB sub-basin calibration</h2>
