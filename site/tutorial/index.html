@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  
+  
+  <link rel="shortcut icon" href="../img/favicon.ico">
+  <title>Tutorial - CalVIC</title>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700|Roboto+Slab:400,700|Inconsolata:400,700" />
+
+  <link rel="stylesheet" href="../css/theme.css" />
+  <link rel="stylesheet" href="../css/theme_extra.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/github.min.css" />
+  
+  <script>
+    // Current page data
+    var mkdocs_page_name = "Tutorial";
+    var mkdocs_page_input_path = "tutorial.md";
+    var mkdocs_page_url = null;
+  </script>
+  
+  <script src="../js/jquery-2.1.1.min.js" defer></script>
+  <script src="../js/modernizr-2.8.3.min.js" defer></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+  <script>hljs.initHighlightingOnLoad();</script> 
+  
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+        <a href=".." class="icon icon-home"> CalVIC</a>
+        <div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+                <ul>
+                    <li class="toctree-l1"><a class="reference internal" href="..">Main</a>
+                    </li>
+                </ul>
+                <ul class="current">
+                    <li class="toctree-l1 current"><a class="reference internal current" href="./">Tutorial</a>
+    <ul class="current">
+    <li class="toctree-l2"><a class="reference internal" href="#lumped-ucrb-calibration">Lumped UCRB calibration</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#impact-of-initial-soil-moisture">Impact of initial soil moisture</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#distributed-ucrb-calibration">Distributed UCRB calibration</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#implementation-on-hoffman2-computing-cluster">Implementation on Hoffman2 computing cluster</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#irb-sub-basin-calibration">IRB sub-basin calibration</a>
+    </li>
+    </ul>
+                    </li>
+                </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="..">CalVIC</a>
+      </nav>
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="..">Docs</a> &raquo;</li>
+    
+      
+    
+    <li>Tutorial</li>
+    <li class="wy-breadcrumbs-aside">
+      
+    </li>
+  </ul>
+  
+  <hr/>
+</div>
+          <div role="main">
+            <div class="section">
+              
+                <h1 id="tutorial">Tutorial</h1>
+<p>The shuffled complex evolution (SCE, Duan et al., 1992) algorithm is a heuristic global optimization algorithm that attempts to find an optimal parameter set to minimize some objective function. It has the following hyper-parameters:</p>
+<ul>
+<li>maxn - maximum number of function calls</li>
+<li>kstop - number of shuffling loops in which the criterion value must change by the given percentage before optimization is terminated</li>
+<li>pcento - percentage by which the criterion value must change in given number (kstop) of shuffling loops to continue optimization</li>
+<li>peps - convergence level for parameter set (lower number means smaller difference between parameters of the population required for stop)</li>
+<li>iseed - initial (random) seed. Used to ensure consistent results across experiments</li>
+<li>iniflg - flag for whether to count initial iteration</li>
+<li>ngs - number of complexes. More complexes makes it less likely that the algorithm with get stuck on a sub-optimal solution, but they are mean that it may take longer for the algorithm to converge.</li>
+</ul>
+<pre><code># SCE hyper-parameters
+maxn = 25;
+kstop = 15; 
+pcento = 1; 
+peps = 0.01; 
+iseed = 704753262; 
+iniflg = 1; 
+ngs = 2;
+</code></pre>
+
+<p>We are using a small number of complexes (2). This makes SCE converge in relatively few iterations, but at the cost of potentially getting stuck in a sub-optimal solution. This is a good option when you think you have a good initial guess.</p>
+<p>Make an initial guess for the parameters: In this tutorial, we are calibrating <em>b</em>, <em>dsmax</em>, and <em>t3</em>, the infiltration capacity parameter, maximum baseflow velocity, and thickness of the third soil layer. We must also constrain the parameters between upper and lower bounds:</p>
+<pre><code>x0 = [0.11, 1.8, 1.8]; % initial guess
+bl = [0.001, 0.5, 0.001]; % lower bounds
+bu = [0.4, 2.5, 30]; % upper bounds
+</code></pre>
+
+<h2 id="lumped-ucrb-calibration">Lumped UCRB calibration</h2>
+<p>The lumped UCRB model is a single-grid cell version of the distributed UCRB model. The meteorological forcings and the soil and vegetation parameter files have been averaged over the basin. This is much faster to run than the full, distributed version of the model, so I tested whether the calibrated parameters from the lumped model would be transferable to the distributed model.</p>
+<p>For the lumped calibration, the following changes must be made to the SCE codes: </p>
+<p>Needed inputs: 
+* name of soil parameter file
+* name of global parameter file
+* location of VIC run command
+* name of VIC output file
+* number of days of spin-up
+* columns of baseflow and runoff in the VIC output file
+* basin area
+* name of validation data
+* choice of objective function
+* which parameters to calibrate</p>
+<p>Currently, these are hard-coded into CalVIC's <code>vic_wrapper_sceua</code>, and also changes must be made to the <code>sceua</code> and <code>cceua</code> functions to set up a different model configuration. It would be preferable to specify these options without having to modify the source code. In an earlier version, I had set this up using a <code>control_params</code> structure containing all these inputs.</p>
+<p>Call the <code>sceua</code> function, which has been modified for this particular model setup. </p>
+<pre><code>[bestx,bestf,xf] = sceua(x0,bl,bu,maxn,kstop,pcento,peps,ngs,iseed,iniflg);
+</code></pre>
+
+<p>The outputs <code>bestx</code>, <code>bestf</code>, and <code>xf</code> are the optimal parameter values, optimal objective function values, and optimal objective function values at the end of each shuffling loop, respectively. After running the calibration, the VIC model can be run one more time to generate outputs using the optimal parameter set.</p>
+<pre><code>[kge, t_m, q_m, t, q] = vic_wrapper_sceua([], bestx, 9999, 1);
+</code></pre>
+
+<p>The <code>9999</code> is just an arbitrary index for the VIC run. At the end, you can calculate the objective function value (in this case KGE) using the predicted and observed discharge values output by <code>vic_wrapper_sceua</code>. </p>
+<pre><code>kge = myKGE(q, q_m)
+</code></pre>
+
+<p>Set up the global parameter file, and run the calibration. We ran the simulation for WY (water years) 2002-2011, using initial soil moisture from a state file generated by running VIC for WY2001, starting with initial soil moisture (init_moist) equal to 70% of the critical point. This is a water-balance simulation with an hourly time step, so it takes about 17.5 seconds per function call. Takes about 8 minutes for the calibration.</p>
+<p>The optimal parameter values were <em>b</em> = 0.1182, <em>Dsmax</em> = 1.842 mm/day, and <em>t3</em> = 1.826 m, with a KGE of 0.38.</p>
+<p><img alt="Plot of the simulated and observed discharge" src="/img/pred_v_obs_cal.png" /></p>
+<h2 id="impact-of-initial-soil-moisture">Impact of initial soil moisture</h2>
+<p>Using simulated climatological average values as the initial conditions for soil moisture. Following Rodell et al. (2005) for land surface model initialization. </p>
+<ol>
+<li>Run VIC for the full WY2001-2011 period, using the baseline initial soil moisture, which is equal to the critical point (about 70% of field capacity). This is a relatively wet initial condition. I am using SSE between discharge time series from successive model runs as the criterion for whether convergence has been reached.</li>
+<li>Repeat until soil moisture values stop changing</li>
+<li>Use climatological average for Oct. 1 as the initial soil moisture.</li>
+</ol>
+<p>I initialized soil moisture using the code <code>.../ESSD/codes/initial_sm.m</code>. After 5 iterations, the initial soil moisture values converged, and the average values on Oct. 1 were 13.0193, 30.7796, and 227.6586 mm for layers 1-3. Without performing soil moisture spin-up, we would be using initial moisture equal to 31.092, 62.184, and 231.166 mm, which means that we probably were overestimating soil moisture by quite a lot in the top two soil layers.</p>
+<p>How does this affect the VIC simulation results?</p>
+<p><img alt="plot of soil moisture" src="/img/soil_moisture_spinup.png" />
+<img alt="plot of discharge" src="/img/q_spinup.png" /></p>
+<p>Initial soil moisture matters until around April 1, after that, it doesn't matter which initial soil moisture is used. This is for the lumped UCRB simulation. Results may not generalize for a distributed simulation or for other basins. Need to review the literature/do more research.</p>
+<p>Butt.</p>
+<h2 id="distributed-ucrb-calibration">Distributed UCRB calibration</h2>
+<h2 id="implementation-on-hoffman2-computing-cluster">Implementation on Hoffman2 computing cluster</h2>
+<h2 id="irb-sub-basin-calibration">IRB sub-basin calibration</h2>
+              
+            </div>
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+      
+        <a href=".." class="btn btn-neutral" title="Main"><span class="icon icon-circle-arrow-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+    
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+      
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="versions">
+    <span class="rst-current-version" data-toggle="rst-current-version">
+      
+      
+        <span><a href=".." style="color: #fcfcfc;">&laquo; Previous</a></span>
+      
+      
+    </span>
+</div>
+    <script>var base_url = '..';</script>
+    <script src="../js/theme.js" defer></script>
+      <script src="../search/main.js" defer></script>
+    <script defer>
+        window.onload = function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        };
+    </script>
+
+</body>
+</html>
